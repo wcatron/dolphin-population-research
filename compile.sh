@@ -1,0 +1,1 @@
+deno compile --allow-read --allow-write nodes/parse.ts

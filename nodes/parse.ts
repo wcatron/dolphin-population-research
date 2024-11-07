@@ -41,7 +41,7 @@ for await (const entry of walk(directory, { exts: [".csv"], maxDepth: 2 })) {
   const records = await parse(csvContent, {
     skipFirstRow: true,
     columns: ["name", "location", "type", "value"],
-  }) as Observation[];
+  }) as unknown as Observation[];
 
   for (const { name, location, type, value } of records) {
     let dolphin = dolphins.get(name);
