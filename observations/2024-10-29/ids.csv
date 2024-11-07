@@ -1,0 +1,7 @@
+name,location,type,value
+"Small Nick",Beach Walker Park,id_photo_right,observations/2024-10-29/id_small_nick_right.jpg
+"Small Nick",Beach Walker Park,id_photo_right,observations/2024-10-29/id_small_nick_2_right.jpg
+"Koko",Beach Walker Park,id_photo_left,observations/2024-10-29/id_koko_left.jpg
+"Koko",Beach Walker Park,id_photo_right,observations/2024-10-29/id_koko_right.jpg
+"Kai",Beach Walker Park,child_of,"Koko"
+"Koko",Beach Walker Park,gender,female

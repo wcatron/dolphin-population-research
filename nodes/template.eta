@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS with Flatly theme from Bootswatch -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .dolphin-img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+        }
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .image-count {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+        .sortable:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .observations {
+            white-space: pre-wrap;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+        }
+        table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        .container-fluid {
+            padding: 0;
+            margin: 0;
+        }
+        .relationships {
+            font-size: 12px;
+        }
+        .relationships a {
+            display: block;
+        }
+        /* Fix widths for Left and Right image columns */
+        .image-col {
+            width: 200px;
+        }
+        /* Remove padding around images */
+        td.image-col {
+            padding: 0;
+        }
+        /* Styles for cards on mobile */
+        @media (max-width: 767px) {
+            .table-responsive {
+                display: none;
+            }
+            .card {
+                margin-bottom: 20px;
+            }
+            .card-body {
+                padding: 10px;
+            }
+            .card-title {
+                margin-bottom: 10px;
+            }
+            .card-text {
+                margin-bottom: 5px;
+            }
+        }
+        /* Hide cards on larger screens */
+        @media (min-width: 768px) {
+            .card {
+                display: none;
+            }
+        }
+        /* Remove animation from carousel */
+        .carousel .carousel-item {
+            transition: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-fluid">
+        <!-- Search Feature -->
+        <div class="form-group">
+            <input type="text" id="searchInput" onkeyup="search()" class="form-control" placeholder="Search for names...">
+        </div>
+
+        <!-- Table for larger screens -->
+        <div class="table-responsive">
+            <table id="dolphinTable" class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th class="sortable" onclick="sortTable(0)">Name</th>
+                        <th class="sortable" onclick="sortTable(1)">Gender</th>
+                        <th class="sortable" onclick="sortTable(2)">Age</th>
+                        <th class="sortable" onclick="sortTable(3)">Observations</th>
+                        <th class="image-col">Left</th>
+                        <th class="image-col">Right</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% it.dolphins.forEach(function(dolphin) { %>
+                        <% const rowId = dolphin.name.replace(/\s+/g, '_'); %>
+                        <tr id="<%= rowId %>">
+                            <td>
+                                <%= dolphin.name %>
+                                <div class="relationships">
+                                    <% dolphin.parents.forEach(function(parent) { %>
+                                        <% const parentId = parent.replace(/\s+/g, '_'); %>
+                                        <a href="#<%= parentId %>"><%= parent %> (parent)</a>
+                                    <% }); %>
+                                    <% dolphin.children.forEach(function(child) { %>
+                                        <% const childId = child.replace(/\s+/g, '_'); %>
+                                        <a href="#<%= childId %>"><%= child %> (child)</a>
+                                    <% }); %>
+                                </div>
+                            </td>
+                            <td>
+                                <% if (dolphin.gender === 'male') { %>
+                                    &#9794; <!-- Male symbol -->
+                                <% } else if (dolphin.gender === 'female') { %>
+                                    &#9792; <!-- Female symbol -->
+                                <% } else { %>
+                                    Unknown
+                                <% } %>
+                            </td>
+                            <td><%= dolphin.age %></td>
+                            <td class="observations"><%= Array.from(dolphin.observations).join('\n') %></td>
+                            <td class="image-col">
+                                <% if (dolphin.leftPhotos.length > 0) { %>
+                                    <div class="image-wrapper" data-photos='<%= JSON.stringify(dolphin.leftPhotos) %>' onclick="openModal(this)">
+                                        <img src="<%= dolphin.leftPhotos[0] %>" class="dolphin-img"/>
+                                        <% if (dolphin.leftPhotos.length > 1) { %>
+                                            <span class="badge badge-secondary image-count"><%= dolphin.leftPhotos.length %></span>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            </td>
+                            <td class="image-col">
+                                <% if (dolphin.rightPhotos.length > 0) { %>
+                                    <div class="image-wrapper" data-photos='<%= JSON.stringify(dolphin.rightPhotos) %>' onclick="openModal(this)">
+                                        <img src="<%= dolphin.rightPhotos[0] %>" class="dolphin-img"/>
+                                        <% if (dolphin.rightPhotos.length > 1) { %>
+                                            <span class="badge badge-secondary image-count"><%= dolphin.rightPhotos.length %></span>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cards for smaller screens -->
+        <div id="dolphinCards">
+            <% it.dolphins.forEach(function(dolphin) { %>
+                <% const cardId = dolphin.name.replace(/\s+/g, '_'); %>
+                <div class="card" id="<%= cardId %>">
+                    <div class="card-body">
+                        <h5 class="card-title"><%= dolphin.name %></h5>
+                        <div class="relationships">
+                            <% dolphin.parents.forEach(function(parent) { %>
+                                <% const parentId = parent.replace(/\s+/g, '_'); %>
+                                <a href="#<%= parentId %>"><%= parent %> (parent)</a>
+                            <% }); %>
+                            <% dolphin.children.forEach(function(child) { %>
+                                <% const childId = child.replace(/\s+/g, '_'); %>
+                                <a href="#<%= childId %>"><%= child %> (child)</a>
+                            <% }); %>
+                        </div>
+                        <p class="card-text">
+                            <strong>Gender:</strong>
+                            <% if (dolphin.gender === 'male') { %>
+                                &#9794; <!-- Male symbol -->
+                            <% } else if (dolphin.gender === 'female') { %>
+                                &#9792; <!-- Female symbol -->
+                            <% } else { %>
+                                Unknown
+                            <% } %>
+                        </p>
+                        <p class="card-text"><strong>Age:</strong> <%= dolphin.age %></p>
+                        <p class="card-text"><strong>Observations:</strong><br><%= Array.from(dolphin.observations).join('<br>') %></p>
+                        <div class="card-images">
+                            <% if (dolphin.leftPhotos.length > 0) { %>
+                                <div class="image-wrapper" data-photos='<%= JSON.stringify(dolphin.leftPhotos) %>' onclick="openModal(this)">
+                                    <img src="<%= dolphin.leftPhotos[0] %>" class="dolphin-img"/>
+                                    <% if (dolphin.leftPhotos.length > 1) { %>
+                                        <span class="badge badge-secondary image-count"><%= dolphin.leftPhotos.length %></span>
+                                    <% } %>
+                                    <p>Left</p>
+                                </div>
+                            <% } %>
+                            <% if (dolphin.rightPhotos.length > 0) { %>
+                                <div class="image-wrapper" data-photos='<%= JSON.stringify(dolphin.rightPhotos) %>' onclick="openModal(this)">
+                                    <img src="<%= dolphin.rightPhotos[0] %>" class="dolphin-img"/>
+                                    <% if (dolphin.rightPhotos.length > 1) { %>
+                                        <span class="badge badge-secondary image-count"><%= dolphin.rightPhotos.length %></span>
+                                    <% } %>
+                                    <p>Right</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-body p-0">
+            <!-- Carousel -->
+            <div id="imageCarousel" class="carousel slide" data-ride="carousel" data-interval="false">
+              <ol class="carousel-indicators" id="carouselIndicators">
+                <!-- Indicators will be generated dynamically -->
+              </ol>
+              <div class="carousel-inner" id="carouselInner">
+                <!-- Carousel items will be generated dynamically -->
+              </div>
+              <!-- Controls -->
+              <a class="carousel-control-prev" href="#imageCarousel" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#imageCarousel" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Include custom script -->
+    <script src="index.js"></script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" crossorigin="anonymous"></script>
+</body>
+</html>
